@@ -1,0 +1,257 @@
+import java.util.Scanner;
+
+enum Boolean {
+    FALSE,
+    TRUE
+}
+
+class Node {
+    Node left;
+    Boolean lthread;
+    int info;
+    Boolean rthread;
+    Node right;
+
+    Node(int info) {
+        this.info = info;
+        left = null;
+        right = null;
+        lthread = Boolean.TRUE;
+        rthread = Boolean.TRUE;
+    }
+}
+
+public class ThreadedTree {
+    static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        Node root = null;
+        while (true) {
+            System.out.println("\nProgram of Threaded Tree in Java");
+            System.out.println("1. Insert");
+            System.out.println("2. Delete");
+            System.out.println("3. Inorder Traversal");
+            System.out.println("4. Preorder Traversal");
+            System.out.println("5. Quit");
+            System.out.print("\nEnter your choice: ");
+            int choice = scanner.nextInt();
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter the number to be inserted: ");
+                    int num = scanner.nextInt();
+                    root = insert(root, num);
+                    break;
+                case 2:
+                    System.out.print("Enter the number to be deleted: ");
+                    num = scanner.nextInt();
+                    root = del(root, num);
+                    break;
+                case 3:
+                    inorder(root);
+                    break;
+                case 4:
+                    preorder(root);
+                    break;
+                case 5:
+                    System.exit(0);
+                default:
+                    System.out.println("\nWrong choice");
+            }
+        }
+    }
+
+    static Node insert(Node root, int ikey) {
+        Node tmp, par, ptr;
+        int found = 0;
+        ptr = root;
+        par = null;
+        while (ptr != null) {
+            if (ikey == ptr.info) {
+                found = 1;
+                break;
+            }
+            par = ptr;
+            if (ikey < ptr.info) {
+                if (ptr.lthread == Boolean.FALSE)
+                    ptr = ptr.left;
+                else
+                    break;
+            } else {
+                if (ptr.rthread == Boolean.FALSE)
+                    ptr = ptr.right;
+                else
+                    break;
+            }
+        }
+        if (found == 1)
+            System.out.println("\nDuplicate key");
+        else {
+            tmp = new Node(ikey);
+            if (par == null) {
+                root = tmp;
+                tmp.left = null;
+                tmp.right = null;
+            } else if (ikey < par.info) {
+                tmp.left = par.left;
+                tmp.right = par;
+                par.lthread = Boolean.FALSE;
+                par.left = tmp;
+            } else {
+                tmp.left = par;
+                tmp.right = par.right;
+                par.rthread = Boolean.FALSE;
+                par.right = tmp;
+            }
+        }
+        return root;
+    }
+
+    static Node del(Node root, int dkey) {
+        Node par, ptr;
+        int found = 0;
+        ptr = root;
+        par = null;
+        while (ptr != null) {
+            if (dkey == ptr.info) {
+                found = 1;
+                break;
+            }
+            par = ptr;
+            if (dkey < ptr.info) {
+                if (ptr.lthread == Boolean.FALSE)
+                    ptr = ptr.left;
+                else
+                    break;
+            } else {
+                if (ptr.rthread == Boolean.FALSE)
+                    ptr = ptr.right;
+                else
+                    break;
+            }
+        }
+        if (found == 0)
+            System.out.println("\ndkey not present in tree");
+        else if (ptr.lthread == Boolean.FALSE && ptr.rthread == Boolean.FALSE)
+            root = case_c(root, par, ptr);
+        else if (ptr.lthread == Boolean.FALSE)
+            root = case_b(root, par, ptr);
+        else if (ptr.rthread == Boolean.FALSE)
+            root = case_b(root, par, ptr);
+        else
+            root = case_a(root, par, ptr);
+        return root;
+    }
+
+    static Node case_a(Node root, Node par, Node ptr) {
+        if (par == null)
+            root = null;
+        else if (ptr == par.left) {
+            par.lthread = Boolean.TRUE;
+            par.left = ptr.left;
+        } else {
+            par.rthread = Boolean.TRUE;
+            par.right = ptr.right;
+        }
+        return root;
+    }
+
+    static Node case_b(Node root, Node par, Node ptr) {
+        Node child, s, p;
+        if (ptr.lthread == Boolean.FALSE)
+            child = ptr.left;
+        else
+            child = ptr.right;
+        if (par == null)
+            root = child;
+        else if (ptr == par.left)
+            par.left = child;
+        else
+            par.right = child;
+        s = in_succ(ptr);
+        p = in_pred(ptr);
+        if (ptr.lthread == Boolean.FALSE)
+            p.right = s;
+        else {
+            if (ptr.rthread == Boolean.FALSE)
+                s.left = p;
+        }
+        return root;
+    }
+
+    static Node case_c(Node root, Node par, Node ptr) {
+        Node succ, parsucc;
+        parsucc = ptr;
+        succ = ptr.right;
+        while (succ.left != null) {
+            parsucc = succ;
+            succ = succ.left;
+        }
+        ptr.info = succ.info;
+        if (succ.lthread == Boolean.TRUE && succ.rthread == Boolean.TRUE)
+            root = case_a(root, parsucc, succ);
+        else
+            root = case_b(root, parsucc, succ);
+        return root;
+    }
+
+    static Node in_succ(Node ptr) {
+        if (ptr.rthread == Boolean.TRUE)
+            return ptr.right;
+        else {
+            ptr = ptr.right;
+            while (ptr.lthread == Boolean.FALSE)
+                ptr = ptr.left;
+            return ptr;
+        }
+    }
+
+    static Node in_pred(Node ptr) {
+        if (ptr.lthread == Boolean.TRUE)
+            return ptr.left;
+        else {
+            ptr = ptr.left;
+            while (ptr.rthread == Boolean.FALSE)
+                ptr = ptr.right;
+            return ptr;
+        }
+    }
+
+    static void inorder(Node root) {
+        Node ptr;
+        if (root == null) {
+            System.out.println("Tree is empty");
+            return;
+        }
+        ptr = root;
+        while (ptr.lthread == Boolean.FALSE)
+            ptr = ptr.left;
+        while (ptr != null) {
+            System.out.print(ptr.info + " ");
+            ptr = in_succ(ptr);
+        }
+        System.out.println();
+    }
+
+    static void preorder(Node root) {
+        Node ptr;
+        if (root == null) {
+            System.out.println("Tree is empty");
+            return;
+        }
+        ptr = root;
+        while (ptr != null) {
+            System.out.print(ptr.info + " ");
+            if (ptr.lthread == Boolean.FALSE)
+                ptr = ptr.left;
+            else if (ptr.rthread == Boolean.FALSE)
+                ptr = ptr.right;
+            else {
+                while (ptr != null && ptr.rthread == Boolean.TRUE)
+                    ptr = ptr.right;
+                if (ptr != null)
+                    ptr = ptr.right;
+            }
+        }
+        System.out.println();
+    }
+}
