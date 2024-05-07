@@ -1,0 +1,66 @@
+import java.util.*;
+
+class Heap {
+    void maxHeapify(int marks[], int i, int n) {
+        int l = 2 * i + 1;
+        int r = 2 * i + 2;
+        int largest = i;
+
+        if (l < n && marks[l] > marks[largest])
+            largest = l;
+        if (r < n && marks[r] > marks[largest])
+            largest = r;
+
+        if (largest != i) {
+            int temp = marks[i];
+            marks[i] = marks[largest];
+            marks[largest] = temp;
+            maxHeapify(marks, largest, n);
+        }
+    }
+
+    void buildMaxHeap(int marks[], int n) {
+        for (int i = n / 2 - 1; i >= 0; i--)
+            maxHeapify(marks, i, n);
+    }
+
+    void heapSort(int marks[], int n) {
+        buildMaxHeap(marks, n);
+
+        for (int i = n - 1; i > 0; i--) {
+            int temp = marks[0];
+            marks[0] = marks[i];
+            marks[i] = temp;
+            maxHeapify(marks, 0, i);
+        }
+    }
+
+    void accept() {
+        Scanner sc = new Scanner(System.in);
+        int n;
+        System.out.println("Enter the number of students: ");
+        n = sc.nextInt();
+        int[] marks = new int[n];
+        System.out.println("\nEnter the marks of the students: ");
+        for (int i = 0; i < n; i++) {
+            marks[i] = sc.nextInt();
+        }
+        heapSort(marks, n);
+        display(marks, n);
+    }
+
+    void display(int marks[], int n) {
+        System.out.println("\n:::::::SORTED MARKS::::::\n");
+
+        for (int i = 0; i < n; i++)
+            System.out.println(marks[i]);
+
+        System.out.println("\nMinimum marks obtained: " + marks[0]);
+        System.out.println("Maximum marks obtained: " + marks[n - 1]);
+    }
+
+    public static void main(String[] args) {
+        Heap h = new Heap();
+        h.accept();
+    }
+}
